@@ -23,7 +23,7 @@ const Metodologia = () => {
                 {paso.paso}
               </div>
               <div style={styles.checkIcon}>
-              <CheckCircle2 size={24} color="#7F00B2" />
+                <CheckCircle2 size={24} color="#00FFD1" />
               </div>
               <h3 className="heading-3" style={styles.pasoTitulo}>
                 {paso.titulo}
@@ -59,12 +59,12 @@ const styles = {
   title: {
     marginBottom: '20px',
   },
-   divider: {
-     width: '100px',
-     height: '3px',
-     background: '#7F00B2',
-     margin: '20px auto',
-   },
+  divider: {
+    width: '100px',
+    height: '3px',
+    background: '#00FFD1',
+    margin: '20px auto',
+  },
   intro: {
     color: 'rgba(255, 255, 255, 0.85)',
     maxWidth: '800px',
@@ -77,30 +77,29 @@ const styles = {
     maxWidth: '800px',
     margin: '0 auto',
   },
-   pasoCard: {
-     padding: '40px',
-     background: 'var(--panel-bg)',
-     border: '1px solid rgba(127, 0, 178, 0.6)',
-     boxShadow: '0 0 0 1px rgba(127, 0, 178, 0.18) inset, 0 18px 32px rgba(0, 0, 0, 0.45)',
-     borderRadius: '0px',
-     position: 'relative',
-     marginBottom: '20px',
-   },
-   pasoNumber: {
-     position: 'absolute',
-     top: '20px',
-     right: '20px',
-     width: '50px',
-     height: '50px',
-     background: '#7F00B2',
-     color: '#FFFFFF',
-     display: 'flex',
-     alignItems: 'center',
-     justifyContent: 'center',
-     fontSize: '24px',
-     fontWeight: 700,
-     borderRadius: '0px',
-   },
+  pasoCard: {
+    padding: '40px',
+    background: '#121212',
+    border: '1px solid rgba(0, 255, 209, 0.25)',
+    borderRadius: '0px',
+    position: 'relative',
+    marginBottom: '20px',
+  },
+  pasoNumber: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    width: '50px',
+    height: '50px',
+    background: '#00FFD1',
+    color: '#000000',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '24px',
+    fontWeight: 700,
+    borderRadius: '0px',
+  },
   checkIcon: {
     marginBottom: '16px',
   },
@@ -109,17 +108,16 @@ const styles = {
     color: '#FFFFFF',
   },
   pasoDesc: {
-    color: 'var(--panel-text)',
-    lineHeight: '1.6',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
-   arrow: {
-     position: 'absolute',
-     bottom: '-30px',
-     left: '50%',
-     transform: 'translateX(-50%)',
-     fontSize: '32px',
-     color: '#7F00B2',
-   },
+  arrow: {
+    position: 'absolute',
+    bottom: '-30px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontSize: '32px',
+    color: '#00FFD1',
+  },
 };
 
 export default Metodologia;

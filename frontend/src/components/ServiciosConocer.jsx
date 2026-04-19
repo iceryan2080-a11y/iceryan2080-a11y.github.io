@@ -18,7 +18,7 @@ const ServiciosConocer = () => {
       <div style={styles.container}>
         <div style={styles.header}>
           <div style={styles.iconTitle}>
-            <Search size={48} color="#C8A11A" />
+            <Search size={48} color="#00FFD1" />
           </div>
           <h2 className="display-large" style={styles.title}>
             Conocer - Identificamos riesgos antes de que se conviertan en ataques
@@ -73,12 +73,12 @@ const styles = {
     maxWidth: '1000px',
     margin: '0 auto 20px',
   },
-     divider: {
-       width: '100px',
-       height: '3px',
-       background: '#C8A11A',
-       margin: '20px auto',
-     },
+  divider: {
+    width: '100px',
+    height: '3px',
+    background: '#00FFD1',
+    margin: '20px auto',
+  },
   intro: {
     color: 'rgba(255, 255, 255, 0.85)',
     maxWidth: '800px',
@@ -89,25 +89,23 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
     gap: '30px',
   },
-    serviceCard: {
-      padding: '32px 24px',
-      background: 'var(--panel-bg)',
-      border: '1px solid rgba(200, 161, 26, 0.55)',
-      boxShadow: '0 0 0 1px rgba(200, 161, 26, 0.2) inset, 0 18px 34px rgba(0, 0, 0, 0.45)',
-      borderRadius: '0px',
-      cursor: 'pointer',
-    },
-    cardIcon: {
-      color: '#C8A11A',
-      marginBottom: '20px',
-    },
+  serviceCard: {
+    padding: '32px 24px',
+    background: '#121212',
+    border: '1px solid rgba(0, 255, 209, 0.2)',
+    borderRadius: '0px',
+    cursor: 'pointer',
+  },
+  cardIcon: {
+    color: '#00FFD1',
+    marginBottom: '20px',
+  },
   serviceTitle: {
     marginBottom: '12px',
     color: '#FFFFFF',
   },
   serviceDesc: {
-    color: 'var(--panel-text)',
-    lineHeight: '1.65',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
 };
 

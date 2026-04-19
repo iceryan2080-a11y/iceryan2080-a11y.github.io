@@ -102,9 +102,8 @@ const styles = {
   },
   valorCard: {
     padding: '40px 30px',
-    background: 'var(--panel-bg)',
-    border: '1px solid var(--panel-border)',
-    boxShadow: '0 0 0 1px rgba(0, 255, 209, 0.14) inset, 0 16px 30px rgba(0, 0, 0, 0.42)',
+    background: '#121212',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
     borderRadius: '0px',
     textAlign: 'center',
     cursor: 'pointer',
@@ -119,8 +118,7 @@ const styles = {
     color: '#FFFFFF',
   },
   valorDesc: {
-    color: 'var(--panel-text)',
-    lineHeight: '1.6',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
 };
 

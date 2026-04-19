@@ -1,6 +1,5 @@
 import React from 'react';
 import { Shield, Mail, Phone, ArrowRight } from 'lucide-react';
-import logo from '../NEFILALOGO.png';
 
 const Footer = () => {
   const scrollToSection = (sectionId) => {
@@ -38,9 +37,9 @@ const Footer = () => {
             {/* Brand Section */}
             <div style={styles.brandSection}>
               <div style={styles.footerLogo}>
-                <img
-                  src={logo}
-                  alt="Nefila Defense Logo"
+                <img 
+                  src="https://customer-assets.emergentagent.com/job_threatshield-56/artifacts/8k9zpc4a_ChatGPT%20Image%20Oct%2023%2C%202025%2C%2005_07_32%20PM.png" 
+                  alt="Nefila Defense Logo" 
                   style={styles.logoImg}
                 />
                 <span style={styles.logoText}>NEFILA DEFENSE</span>
@@ -113,14 +112,14 @@ const Footer = () => {
               <ul style={styles.linkList}>
                 <li style={styles.contactItem}>
                   <Mail size={16} color="#00FFD1" />
-                  <a href="mailto:nefila-df@protonmail.com" style={styles.contactLink}>
-                    nefila-df@protonmail.com
+                  <a href="mailto:contacto@nefiladefense.com" style={styles.contactLink}>
+                    contacto@nefiladefense.com
                   </a>
                 </li>
                 <li style={styles.contactItem}>
                   <Phone size={16} color="#00FFD1" />
-                  <a href="tel:+50762665041" style={styles.contactLink}>
-                    +507 62665041
+                  <a href="tel:+50768921269" style={styles.contactLink}>
+                    +507 68921269
                   </a>
                 </li>
               </ul>

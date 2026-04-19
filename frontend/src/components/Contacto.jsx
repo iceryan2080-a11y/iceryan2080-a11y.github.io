@@ -1,7 +1,55 @@
-import React from 'react';
-import { Mail, Phone, MessageSquare, ShieldAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { enviarFormularioContacto, tiposServicio } from '../mock';
 
 const Contacto = () => {
+  const [formData, setFormData] = useState({
+    nombre: '',
+    empresa: '',
+    email: '',
+    telefono: '',
+    tipoServicio: '',
+    mensaje: '',
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const response = await enviarFormularioContacto(formData);
+      if (response.success) {
+        setSuccess(true);
+        setFormData({
+          nombre: '',
+          empresa: '',
+          email: '',
+          telefono: '',
+          tipoServicio: '',
+          mensaje: '',
+        });
+        
+        setTimeout(() => {
+          setSuccess(false);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Error al enviar formulario:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section id="contacto" style={styles.section}>
       <div style={styles.container}>
@@ -26,8 +74,8 @@ const Contacto = () => {
               <Mail size={24} color="#00FFD1" />
               <div>
                 <p style={styles.contactLabel}>Email</p>
-                <a href="mailto:nefila-df@protonmail.com" style={styles.contactLink}>
-                  nefila-df@protonmail.com
+                <a href="mailto:contacto@nefiladefense.com" style={styles.contactLink}>
+                  contacto@nefiladefense.com
                 </a>
               </div>
             </div>
@@ -36,8 +84,8 @@ const Contacto = () => {
               <Phone size={24} color="#00FFD1" />
               <div>
                 <p style={styles.contactLabel}>Teléfono / WhatsApp</p>
-                <a href="tel:+50762665041" style={styles.contactLink}>
-                  +507 62665041
+                <a href="tel:+50768921269" style={styles.contactLink}>
+                  +507 68921269
                 </a>
               </div>
             </div>
@@ -57,51 +105,115 @@ const Contacto = () => {
                 Si estás experimentando un incidente de seguridad activo, 
                 llámanos inmediatamente.
               </p>
-              <a href="tel:+50762665041" className="btn-red" style={styles.emergencyBtn}>
+              <a href="tel:+50768921269" className="btn-red" style={styles.emergencyBtn}>
                 Llamar Ahora
               </a>
             </div>
           </div>
 
-          {/* Contact Summary */}
+          {/* Contact Form */}
           <div style={styles.formSection}>
-            <div style={styles.successMessage}>
-              <ShieldAlert size={24} color="#00FFD1" />
-              <div>
-                <p style={styles.successTitle}>Formulario desactivado temporalmente</p>
-                <p style={styles.successText}>
-                  Esta version publica no recopila datos en linea.
-                </p>
-                <p style={styles.successText}>
-                  Contactanos por correo o telefono para atencion personalizada.
-                </p>
+            {success && (
+              <div style={styles.successMessage}>
+                <CheckCircle2 size={24} color="#00FFD1" />
+                <div>
+                  <p style={styles.successTitle}>Mensaje Enviado</p>
+                  <p style={styles.successText}>Nos pondremos en contacto pronto</p>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div style={styles.form}>
-              <div style={styles.staticCard}>
-                <h4 style={styles.staticTitle}>Canales directos</h4>
-                <p style={styles.staticText}>Correo: nefila-df@protonmail.com</p>
-                <p style={styles.staticText}>Telefono: +507 62665041</p>
-                <p style={styles.staticText}>Horario: Lun - Vie, 8:00 AM - 6:00 PM</p>
-              </div>
-
-              <div style={styles.staticCard}>
-                <h4 style={styles.staticTitle}>Cobertura</h4>
-                <p style={styles.staticText}>Pentesting y auditorias</p>
-                <p style={styles.staticText}>Respuesta a incidentes 24/7</p>
-                <p style={styles.staticText}>Fortalecimiento continuo de seguridad</p>
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Nombre *</label>
+                <input
+                  type="text"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                  placeholder="Tu nombre"
+                />
               </div>
 
-              <div style={styles.actionsRow}>
-                <a href="mailto:nefila-df@protonmail.com" className="btn-primary" style={styles.contactBtn}>
-                  Escribir por Correo
-                </a>
-                <a href="https://wa.me/50762665041" target="_blank" rel="noreferrer" className="btn-secondary" style={styles.contactBtn}>
-                  Abrir WhatsApp
-                </a>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Empresa *</label>
+                <input
+                  type="text"
+                  name="empresa"
+                  value={formData.empresa}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                  placeholder="Nombre de tu empresa"
+                />
               </div>
-            </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Email *</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                  placeholder="tu@email.com"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Teléfono *</label>
+                <input
+                  type="tel"
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                  placeholder="68921269"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Tipo de Servicio Requerido *</label>
+                <select
+                  name="tipoServicio"
+                  value={formData.tipoServicio}
+                  onChange={handleChange}
+                  required
+                  style={styles.select}
+                >
+                  <option value="">Seleccionar...</option>
+                  {tiposServicio.map((tipo) => (
+                    <option key={tipo} value={tipo}>{tipo}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{...styles.formGroup, gridColumn: '1 / -1'}}>
+                <label style={styles.label}>Mensaje *</label>
+                <textarea
+                  name="mensaje"
+                  value={formData.mensaje}
+                  onChange={handleChange}
+                  required
+                  style={styles.textarea}
+                  rows="5"
+                  placeholder="Cuéntanos sobre tus necesidades de seguridad..."
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                className="btn-primary"
+                disabled={loading}
+                style={{...styles.submitBtn, opacity: loading ? 0.6 : 1}}
+              >
+                {loading ? 'Enviando...' : 'Enviar Mensaje'}
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -153,14 +265,10 @@ const styles = {
     display: 'flex',
     gap: '20px',
     alignItems: 'flex-start',
-    padding: '18px',
-    background: 'rgba(18, 18, 18, 0.92)',
-    border: '1px solid rgba(0, 255, 209, 0.28)',
-    boxShadow: '0 0 0 1px rgba(0, 255, 209, 0.12) inset',
   },
   contactLabel: {
     fontSize: '14px',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#4D4D4D',
     marginBottom: '4px',
     fontFamily: 'Fira Code, monospace',
   },
@@ -179,9 +287,8 @@ const styles = {
   },
   urgencyBox: {
     padding: '32px',
-    background: 'rgba(255, 0, 64, 0.12)',
-    border: '1px solid rgba(255, 0, 64, 0.48)',
-    boxShadow: '0 0 0 1px rgba(255, 0, 64, 0.15) inset, 0 16px 32px rgba(0, 0, 0, 0.4)',
+    background: 'rgba(255, 0, 64, 0.05)',
+    border: '1px solid rgba(255, 0, 64, 0.3)',
     borderRadius: '0px',
     marginTop: '20px',
   },
@@ -203,18 +310,16 @@ const styles = {
     display: 'inline-flex',
   },
   formSection: {
-    background: 'var(--panel-bg)',
+    background: '#121212',
     padding: '40px',
-    border: '1px solid var(--panel-border)',
-    boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.12) inset, 0 20px 36px rgba(0, 0, 0, 0.45)',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
     borderRadius: '0px',
   },
   successMessage: {
     marginBottom: '32px',
     padding: '20px',
-    background: 'rgba(0, 255, 209, 0.1)',
-    border: '1px solid rgba(0, 255, 209, 0.45)',
-    boxShadow: '0 0 0 1px rgba(0, 255, 209, 0.14) inset',
+    background: 'rgba(0, 255, 209, 0.05)',
+    border: '1px solid rgba(0, 255, 209, 0.3)',
     borderRadius: '0px',
     display: 'flex',
     alignItems: 'center',
@@ -231,36 +336,64 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.85)',
   },
   form: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     gap: '24px',
   },
-  staticCard: {
-    background: 'rgba(0, 0, 0, 0.6)',
-    border: '1px solid rgba(255, 255, 255, 0.35)',
-    padding: '18px',
-  },
-  staticTitle: {
-    fontSize: '18px',
-    fontWeight: 600,
-    marginBottom: '8px',
-    color: '#FFFFFF',
-    fontFamily: 'Fira Code, monospace',
-  },
-  staticText: {
-    fontSize: '16px',
-    color: 'var(--panel-text)',
-    fontFamily: 'Fira Code, monospace',
-    marginBottom: '6px',
-  },
-  actionsRow: {
+  formGroup: {
     display: 'flex',
-    gap: '14px',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
   },
-  contactBtn: {
-    minWidth: '220px',
+  label: {
+    fontSize: '16px',
+    fontWeight: 500,
+    color: '#FFFFFF',
+    marginBottom: '8px',
+    fontFamily: 'Fira Code, monospace',
+  },
+  input: {
+    padding: '12px 16px',
+    background: '#000000',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderRadius: '0px',
+    color: '#FFFFFF',
+    fontSize: '16px',
+    fontFamily: 'Fira Code, monospace',
+    transition: 'border-color 0.3s ease',
+  },
+  select: {
+    padding: '12px 16px',
+    background: '#000000',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderRadius: '0px',
+    color: '#FFFFFF',
+    fontSize: '16px',
+    fontFamily: 'Fira Code, monospace',
+    transition: 'border-color 0.3s ease',
+  },
+  textarea: {
+    padding: '12px 16px',
+    background: '#000000',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderRadius: '0px',
+    color: '#FFFFFF',
+    fontSize: '16px',
+    fontFamily: 'Fira Code, monospace',
+    resize: 'vertical',
+    transition: 'border-color 0.3s ease',
+  },
+  submitBtn: {
+    gridColumn: '1 / -1',
   },
 };
+
+// Add hover styles
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  a[style*="color: #00FFD1"]:hover {
+    color: #6FD2C0 !important;
+  }
+`;
+document.head.appendChild(styleSheet);
 
 export default Contacto;

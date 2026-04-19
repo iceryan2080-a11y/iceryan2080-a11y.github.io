@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import logo from '../NEFILALOGO.png';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -17,9 +16,9 @@ const Header = () => {
     <header style={styles.header}>
       <div style={styles.container}>
         <div style={styles.logo}>
-          <img
-            src={logo}
-            alt="Nefila Defense Logo"
+          <img 
+            src="https://customer-assets.emergentagent.com/job_threatshield-56/artifacts/8k9zpc4a_ChatGPT%20Image%20Oct%2023%2C%202025%2C%2005_07_32%20PM.png" 
+            alt="Nefila Defense Logo" 
             style={styles.logoImg}
           />
           <span style={styles.logoText}>NEFILA DEFENSE</span>

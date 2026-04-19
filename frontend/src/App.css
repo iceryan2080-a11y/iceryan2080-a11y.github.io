@@ -33,13 +33,6 @@ body {
   /* Borders - Subtle Dark Theme */
   --border-subtle: rgba(255, 255, 255, 0.25);
   --border-medium: rgba(255, 255, 255, 0.4);
-
-  /* Elevated panels - stronger cards/forms readability */
-  --panel-bg: linear-gradient(180deg, rgba(24, 24, 24, 0.96) 0%, rgba(12, 12, 12, 0.96) 100%);
-  --panel-border: rgba(255, 255, 255, 0.35);
-  --panel-border-green: rgba(0, 255, 209, 0.45);
-  --panel-border-red: rgba(255, 0, 64, 0.45);
-  --panel-text: rgba(255, 255, 255, 0.92);
   
   /* MAIN ACCENT COLORS - Brand Colors Only */
   --brand-primary: #00FFD1;
