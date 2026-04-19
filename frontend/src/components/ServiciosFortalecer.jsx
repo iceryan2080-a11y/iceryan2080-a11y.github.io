@@ -17,7 +17,7 @@ const ServiciosFortalecer = () => {
       <div style={styles.container}>
         <div style={styles.header}>
           <div style={styles.iconTitle}>
-            <Shield size={48} color="#00FFD1" />
+            <Shield size={48} color="rgb(255, 122, 0)" />
           </div>
           <h2 className="display-large" style={styles.title}>
             Fortalecer - Protección continua de los activos críticos
@@ -75,7 +75,7 @@ const styles = {
   divider: {
     width: '100px',
     height: '3px',
-    background: '#00FFD1',
+    background: 'rgb(255, 122, 0)',
     margin: '20px auto',
   },
   intro: {
@@ -91,12 +91,12 @@ const styles = {
   serviceCard: {
     padding: '32px 24px',
     background: '#121212',
-    border: '1px solid rgba(0, 255, 209, 0.2)',
+    border: '1px solid rgba(255, 122, 0, 0.35)',
     borderRadius: '0px',
     cursor: 'pointer',
   },
   cardIcon: {
-    color: '#00FFD1',
+    color: 'rgb(255, 122, 0)',
     marginBottom: '20px',
   },
   serviceTitle: {

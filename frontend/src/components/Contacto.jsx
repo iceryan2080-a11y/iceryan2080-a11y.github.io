@@ -1,55 +1,7 @@
-import React, { useState } from 'react';
-import { Mail, Phone, MessageSquare, CheckCircle2 } from 'lucide-react';
-import { enviarFormularioContacto, tiposServicio } from '../mock';
+import React from 'react';
+import { Mail, Phone, MessageSquare } from 'lucide-react';
 
 const Contacto = () => {
-  const [formData, setFormData] = useState({
-    nombre: '',
-    empresa: '',
-    email: '',
-    telefono: '',
-    tipoServicio: '',
-    mensaje: '',
-  });
-  
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const response = await enviarFormularioContacto(formData);
-      if (response.success) {
-        setSuccess(true);
-        setFormData({
-          nombre: '',
-          empresa: '',
-          email: '',
-          telefono: '',
-          tipoServicio: '',
-          mensaje: '',
-        });
-        
-        setTimeout(() => {
-          setSuccess(false);
-        }, 5000);
-      }
-    } catch (error) {
-      console.error('Error al enviar formulario:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <section id="contacto" style={styles.section}>
       <div style={styles.container}>
@@ -74,8 +26,8 @@ const Contacto = () => {
               <Mail size={24} color="#00FFD1" />
               <div>
                 <p style={styles.contactLabel}>Email</p>
-                <a href="mailto:contacto@nefiladefense.com" style={styles.contactLink}>
-                  contacto@nefiladefense.com
+                <a href="mailto:nefila-df@protonmail.com" style={styles.contactLink}>
+                  nefila-df@protonmail.com
                 </a>
               </div>
             </div>
@@ -84,8 +36,8 @@ const Contacto = () => {
               <Phone size={24} color="#00FFD1" />
               <div>
                 <p style={styles.contactLabel}>Teléfono / WhatsApp</p>
-                <a href="tel:+50768921269" style={styles.contactLink}>
-                  +507 68921269
+                <a href="https://wa.me/50762665041" style={styles.contactLink}>
+                  +507 6266 5041
                 </a>
               </div>
             </div>
@@ -102,118 +54,31 @@ const Contacto = () => {
             <div style={styles.urgencyBox}>
               <h4 style={styles.urgencyTitle}>¿Incidente de Seguridad?</h4>
               <p style={styles.urgencyText}>
-                Si estás experimentando un incidente de seguridad activo, 
-                llámanos inmediatamente.
+                Si estás experimentando un incidente de seguridad activo,
+                escríbenos directamente por WhatsApp.
               </p>
-              <a href="tel:+50768921269" className="btn-red" style={styles.emergencyBtn}>
-                Llamar Ahora
+              <a href="https://wa.me/50762665041" className="btn-red" style={styles.emergencyBtn}>
+                Escribir Ahora
               </a>
             </div>
           </div>
 
-          {/* Contact Form */}
           <div style={styles.formSection}>
-            {success && (
-              <div style={styles.successMessage}>
-                <CheckCircle2 size={24} color="#00FFD1" />
-                <div>
-                  <p style={styles.successTitle}>Mensaje Enviado</p>
-                  <p style={styles.successText}>Nos pondremos en contacto pronto</p>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} style={styles.form}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Nombre *</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                  placeholder="Tu nombre"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Empresa *</label>
-                <input
-                  type="text"
-                  name="empresa"
-                  value={formData.empresa}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                  placeholder="Nombre de tu empresa"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                  placeholder="tu@email.com"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Teléfono *</label>
-                <input
-                  type="tel"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                  placeholder="68921269"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Tipo de Servicio Requerido *</label>
-                <select
-                  name="tipoServicio"
-                  value={formData.tipoServicio}
-                  onChange={handleChange}
-                  required
-                  style={styles.select}
-                >
-                  <option value="">Seleccionar...</option>
-                  {tiposServicio.map((tipo) => (
-                    <option key={tipo} value={tipo}>{tipo}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{...styles.formGroup, gridColumn: '1 / -1'}}>
-                <label style={styles.label}>Mensaje *</label>
-                <textarea
-                  name="mensaje"
-                  value={formData.mensaje}
-                  onChange={handleChange}
-                  required
-                  style={styles.textarea}
-                  rows="5"
-                  placeholder="Cuéntanos sobre tus necesidades de seguridad..."
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                className="btn-primary"
-                disabled={loading}
-                style={{...styles.submitBtn, opacity: loading ? 0.6 : 1}}
-              >
-                {loading ? 'Enviando...' : 'Enviar Mensaje'}
-              </button>
-            </form>
+            <h3 className="heading-2" style={styles.formTitle}>
+              Escríbenos y te respondemos
+            </h3>
+            <p style={styles.formText}>
+              Esta es una página estática. Usa los canales directos para iniciar
+              tu solicitud.
+            </p>
+            <div style={styles.formActions}>
+              <a href="https://wa.me/50762665041" className="btn-primary">
+                WhatsApp directo
+              </a>
+              <a href="mailto:nefila-df@protonmail.com" className="btn-red">
+                Enviar Email
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -315,75 +180,18 @@ const styles = {
     border: '1px solid rgba(255, 255, 255, 0.25)',
     borderRadius: '0px',
   },
-  successMessage: {
-    marginBottom: '32px',
-    padding: '20px',
-    background: 'rgba(0, 255, 209, 0.05)',
-    border: '1px solid rgba(0, 255, 209, 0.3)',
-    borderRadius: '0px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
+  formTitle: {
+    marginBottom: '16px',
+    color: '#FFFFFF',
   },
-  successTitle: {
-    fontSize: '18px',
-    fontWeight: 600,
-    color: '#00FFD1',
-    marginBottom: '4px',
-  },
-  successText: {
-    fontSize: '16px',
+  formText: {
+    marginBottom: '28px',
     color: 'rgba(255, 255, 255, 0.85)',
   },
-  form: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '24px',
-  },
-  formGroup: {
+  formActions: {
     display: 'flex',
-    flexDirection: 'column',
-  },
-  label: {
-    fontSize: '16px',
-    fontWeight: 500,
-    color: '#FFFFFF',
-    marginBottom: '8px',
-    fontFamily: 'Fira Code, monospace',
-  },
-  input: {
-    padding: '12px 16px',
-    background: '#000000',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
-    borderRadius: '0px',
-    color: '#FFFFFF',
-    fontSize: '16px',
-    fontFamily: 'Fira Code, monospace',
-    transition: 'border-color 0.3s ease',
-  },
-  select: {
-    padding: '12px 16px',
-    background: '#000000',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
-    borderRadius: '0px',
-    color: '#FFFFFF',
-    fontSize: '16px',
-    fontFamily: 'Fira Code, monospace',
-    transition: 'border-color 0.3s ease',
-  },
-  textarea: {
-    padding: '12px 16px',
-    background: '#000000',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
-    borderRadius: '0px',
-    color: '#FFFFFF',
-    fontSize: '16px',
-    fontFamily: 'Fira Code, monospace',
-    resize: 'vertical',
-    transition: 'border-color 0.3s ease',
-  },
-  submitBtn: {
-    gridColumn: '1 / -1',
+    flexWrap: 'wrap',
+    gap: '16px',
   },
 };
 
@@ -392,6 +200,9 @@ const styleSheet = document.createElement('style');
 styleSheet.textContent = `
   a[style*="color: #00FFD1"]:hover {
     color: #6FD2C0 !important;
+  }
+  a.btn-red:hover {
+    color: #FFFFFF !important;
   }
 `;
 document.head.appendChild(styleSheet);

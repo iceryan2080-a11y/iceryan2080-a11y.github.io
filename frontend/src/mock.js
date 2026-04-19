@@ -121,32 +121,3 @@ export const metodologia = [
     descripcion: "Monitoreo constante y mejora de la postura de seguridad."
   }
 ];
-
-export const tiposServicio = [
-  "Pentesting",
-  "Auditoría de Seguridad",
-  "Respuesta a Incidentes",
-  "Gestión de Vulnerabilidades",
-  "Threat Intelligence",
-  "Consultoría de Seguridad",
-  "Otro"
-];
-
-// Mock para envío de formularios
-export const enviarFormularioContacto = async (datos) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Formulario enviado (MOCK):', datos);
-      resolve({ success: true, message: 'Mensaje enviado correctamente' });
-    }, 1000);
-  });
-};
-
-export const enviarCotizacion = async (datos) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Cotización enviada (MOCK):', datos);
-      resolve({ success: true, message: 'Solicitud de cotización recibida', cotizacionId: 'COT-' + Math.random().toString(36).substr(2, 9).toUpperCase() });
-    }, 1000);
-  });
-};

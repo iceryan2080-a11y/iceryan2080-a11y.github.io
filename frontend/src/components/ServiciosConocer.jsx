@@ -18,7 +18,7 @@ const ServiciosConocer = () => {
       <div style={styles.container}>
         <div style={styles.header}>
           <div style={styles.iconTitle}>
-            <Search size={48} color="#00FFD1" />
+            <Search size={48} color="rgb(200, 161, 26)" />
           </div>
           <h2 className="display-large" style={styles.title}>
             Conocer - Identificamos riesgos antes de que se conviertan en ataques
@@ -76,7 +76,7 @@ const styles = {
   divider: {
     width: '100px',
     height: '3px',
-    background: '#00FFD1',
+    background: 'rgb(200, 161, 26)',
     margin: '20px auto',
   },
   intro: {
@@ -92,12 +92,12 @@ const styles = {
   serviceCard: {
     padding: '32px 24px',
     background: '#121212',
-    border: '1px solid rgba(0, 255, 209, 0.2)',
+    border: '1px solid rgba(200, 161, 26, 0.35)',
     borderRadius: '0px',
     cursor: 'pointer',
   },
   cardIcon: {
-    color: '#00FFD1',
+    color: 'rgb(200, 161, 26)',
     marginBottom: '20px',
   },
   serviceTitle: {

@@ -17,13 +17,13 @@ const Metodologia = () => {
         </div>
 
         <div style={styles.metodologiaGrid}>
-          {metodologia.map((paso) => (
-            <div key={paso.paso} style={styles.pasoCard} className="dark-transition">
+           {metodologia.map((paso) => (
+             <div key={paso.paso} style={styles.pasoCard} className="dark-transition">
               <div style={styles.pasoNumber}>
                 {paso.paso}
               </div>
               <div style={styles.checkIcon}>
-                <CheckCircle2 size={24} color="#00FFD1" />
+                <CheckCircle2 size={24} color="rgb(127, 0, 178)" />
               </div>
               <h3 className="heading-3" style={styles.pasoTitulo}>
                 {paso.titulo}
@@ -32,7 +32,7 @@ const Metodologia = () => {
                 {paso.descripcion}
               </p>
               {paso.paso < metodologia.length && (
-                <div style={styles.arrow}>↓</div>
+                <div style={styles.arrow}>→</div>
               )}
             </div>
           ))}
@@ -62,7 +62,7 @@ const styles = {
   divider: {
     width: '100px',
     height: '3px',
-    background: '#00FFD1',
+    background: 'rgb(127, 0, 178)',
     margin: '20px auto',
   },
   intro: {
@@ -71,19 +71,19 @@ const styles = {
     margin: '0 auto',
   },
   metodologiaGrid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0',
-    maxWidth: '800px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    gap: '24px',
+    maxWidth: '1200px',
     margin: '0 auto',
   },
   pasoCard: {
     padding: '40px',
     background: '#121212',
-    border: '1px solid rgba(0, 255, 209, 0.25)',
+    border: '1px solid rgba(127, 0, 178, 0.35)',
     borderRadius: '0px',
     position: 'relative',
-    marginBottom: '20px',
+    marginBottom: '0',
   },
   pasoNumber: {
     position: 'absolute',
@@ -91,7 +91,7 @@ const styles = {
     right: '20px',
     width: '50px',
     height: '50px',
-    background: '#00FFD1',
+    background: 'rgb(127, 0, 178)',
     color: '#000000',
     display: 'flex',
     alignItems: 'center',
@@ -112,11 +112,11 @@ const styles = {
   },
   arrow: {
     position: 'absolute',
-    bottom: '-30px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontSize: '32px',
-    color: '#00FFD1',
+    right: '-24px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    fontSize: '28px',
+    color: 'rgb(127, 0, 178)',
   },
 };
 
