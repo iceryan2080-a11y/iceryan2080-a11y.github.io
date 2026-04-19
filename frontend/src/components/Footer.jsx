@@ -37,9 +37,9 @@ const Footer = () => {
             {/* Brand Section */}
             <div style={styles.brandSection}>
               <div style={styles.footerLogo}>
-                <img 
-                  src="https://customer-assets.emergentagent.com/job_threatshield-56/artifacts/8k9zpc4a_ChatGPT%20Image%20Oct%2023%2C%202025%2C%2005_07_32%20PM.png" 
-                  alt="Nefila Defense Logo" 
+                <img
+                  src={`${process.env.PUBLIC_URL}/NEFILALOGO.png`}
+                  alt="Nefila Defense Logo"
                   style={styles.logoImg}
                 />
                 <span style={styles.logoText}>NEFILA DEFENSE</span>
