@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FOR-2026-BDO-QR-001 | Análisis Forense Digital</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #080b10;
+  --surface:  #0d1117;
+  --panel:    #111820;
+  --border:   #1e2d3d;
+  --border2:  #2a3f52;
+  --accent:   #00d4ff;
+  --accent2:  #0099cc;
+  --green:    #39d353;
+  --red:      #ff4444;
+  --amber:    #f0a500;
+  --text:     #cdd9e5;
+  --subtext:  #6e8099;
+  --dim:      #3d5269;
+  --code-bg:  #060a0f;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── SCANLINE overlay ────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  background: repeating-linear-gradient(0deg,
+    transparent, transparent 2px,
+    rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px);
+}
+
+/* ── GRID BG ─────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+#app { position: relative; z-index: 1; }
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ── TOP BAR ─────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(8,11,16,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 48px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--subtext);
+}
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+.topbar-ref { color: var(--accent); letter-spacing: .08em; }
+.tlp-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em;
+  padding: 3px 10px; border-radius: 3px;
+  border: 1px solid;
+}
+.tlp-amber { color: var(--amber); border-color: var(--amber); background: rgba(240,165,0,.08); }
+.tlp-red   { color: var(--red);   border-color: var(--red);   background: rgba(255,68,68,.08); }
+
+/* ── HERO ────────────────────────────────────────── */
+.hero {
+  padding: 64px 0 48px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 48px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+  letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hero-badge::before {
+  content: ''; display: block;
+  width: 20px; height: 1px; background: var(--accent);
+}
+.hero-title {
+  font-family: var(--font-head); font-size: clamp(28px,5vw,46px);
+  font-weight: 800; line-height: 1.1; color: #fff;
+  margin-bottom: 12px;
+  letter-spacing: -.02em;
+}
+.hero-title span { color: var(--accent); }
+.hero-sub {
+  font-family: var(--font-mono); font-size: 12px; color: var(--subtext);
+  margin-bottom: 32px;
+}
+.hero-meta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+}
+.meta-cell {
+  background: var(--panel); padding: 14px 18px;
+}
+.meta-label {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--subtext); margin-bottom: 4px;
+}
+.meta-value {
+  font-family: var(--font-mono); font-size: 12px; color: var(--text); font-weight: 600;
+}
+
+/* ── FLAG BOX ────────────────────────────────────── */
+.flag-box {
+  background: linear-gradient(135deg, rgba(57,211,83,.06), rgba(0,212,255,.04));
+  border: 1px solid rgba(57,211,83,.3);
+  border-radius: 8px; padding: 24px 28px;
+  margin: 24px 0;
+  position: relative; overflow: hidden;
+}
+.flag-box::before {
+  content: 'FLAG RECOVERED';
+  position: absolute; top: 10px; right: 14px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .14em;
+  color: rgba(57,211,83,.4);
+}
+.flag-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em;
+  color: var(--subtext); margin-bottom: 10px;
+}
+.flag-value {
+  font-family: var(--font-mono); font-size: 22px; font-weight: 700;
+  color: var(--green); letter-spacing: .04em;
+  text-shadow: 0 0 20px rgba(57,211,83,.4);
+}
+
+/* ── SECTIONS ────────────────────────────────────── */
+.section { margin-bottom: 52px; }
+
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  color: var(--bg); background: var(--accent);
+  width: 26px; height: 26px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; letter-spacing: .05em;
+}
+.section-title {
+  font-family: var(--font-head); font-size: 17px; font-weight: 700;
+  color: #fff; letter-spacing: -.01em;
+}
+
+.subsection-title {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: .08em; text-transform: uppercase;
+  margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.subsection-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+p { color: var(--text); margin-bottom: 14px; }
+p strong { color: #fff; }
+
+/* ── CALLOUT ─────────────────────────────────────── */
+.callout {
+  border-left: 3px solid;
+  border-radius: 0 6px 6px 0;
+  padding: 14px 18px; margin: 16px 0;
+  font-size: 13.5px;
+}
+.callout-warn  { border-color: var(--amber); background: rgba(240,165,0,.07); }
+.callout-info  { border-color: var(--accent); background: rgba(0,212,255,.05); }
+.callout-note  { border-color: var(--dim); background: rgba(61,82,105,.15); }
+.callout-icon  { font-size: 14px; margin-right: 6px; }
+
+/* ── HASH BOX ────────────────────────────────────── */
+.hash-box {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 14px 16px; margin: 10px 0;
+}
+.hash-algo {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--subtext); margin-bottom: 6px;
+}
+.hash-val {
+  font-family: var(--font-mono); font-size: 12px; color: var(--green);
+  word-break: break-all; line-height: 1.5;
+}
+
+/* ── CODE BLOCK ──────────────────────────────────── */
+.code-block {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden; margin: 12px 0;
+}
+.code-header {
+  background: var(--panel); border-bottom: 1px solid var(--border);
+  padding: 8px 14px; display: flex; align-items: center; gap: 8px;
+}
+.code-dot { width: 8px; height: 8px; border-radius: 50%; }
+.code-lang {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em;
+  color: var(--subtext); margin-left: auto;
+}
+pre {
+  padding: 16px; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.7;
+  color: var(--green);
+}
+pre .c  { color: var(--subtext); font-style: italic; }
+pre .k  { color: var(--accent); }
+pre .s  { color: var(--amber); }
+pre .bad { color: var(--red); text-decoration: line-through; }
+pre .good { color: var(--green); }
+
+/* ── TABLES ──────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; margin: 12px 0; border-radius: 6px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: rgba(0,212,255,.08); }
+thead th {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent);
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(0,212,255,.03); }
+tbody tr:nth-child(even) { background: rgba(0,0,0,.2); }
+tbody tr:nth-child(even):hover { background: rgba(0,212,255,.04); }
+td {
+  padding: 9px 14px; font-size: 13px;
+  color: var(--text); vertical-align: middle;
+}
+td.mono { font-family: var(--font-mono); font-size: 11.5px; }
+td.hl { color: #fff; font-weight: 600; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .06em;
+}
+.badge-red    { background: rgba(255,68,68,.15);    color: var(--red);   border: 1px solid rgba(255,68,68,.3); }
+.badge-amber  { background: rgba(240,165,0,.15);    color: var(--amber); border: 1px solid rgba(240,165,0,.3); }
+.badge-green  { background: rgba(57,211,83,.15);    color: var(--green); border: 1px solid rgba(57,211,83,.3); }
+.badge-blue   { background: rgba(0,212,255,.12);    color: var(--accent);border: 1px solid rgba(0,212,255,.25);}
+.badge-dim    { background: rgba(61,82,105,.3);     color: var(--subtext);border: 1px solid var(--border); }
+
+/* ── PHASE CARDS ─────────────────────────────────── */
+.phase-list { display: flex; flex-direction: column; gap: 4px; }
+.phase-card {
+  display: grid; grid-template-columns: 48px 1fr;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+  transition: border-color .2s;
+}
+.phase-card:hover { border-color: var(--border2); }
+.phase-num {
+  background: rgba(0,212,255,.06);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  color: var(--accent); border-right: 1px solid var(--border);
+}
+.phase-body { padding: 14px 18px; }
+.phase-title {
+  font-family: var(--font-head); font-size: 13px; font-weight: 700;
+  color: #fff; margin-bottom: 5px;
+}
+.phase-desc { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+/* ── DAMAGE MAP ──────────────────────────────────── */
+.qr-visual {
+  display: grid; grid-template-columns: repeat(29, 1fr);
+  gap: 1px; width: min(320px, 100%); margin: 0 auto 20px;
+  background: var(--border);
+  border: 1px solid var(--border); border-radius: 4px; padding: 8px;
+}
+.qr-cell {
+  aspect-ratio: 1;
+  border-radius: 1px;
+  transition: background .1s;
+}
+.qr-black   { background: #e6edf3; }
+.qr-white   { background: var(--code-bg); }
+.qr-torn    { background: rgba(255,68,68,.35); animation: torn-flicker 2s infinite; }
+.qr-rebuilt { background: rgba(0,212,255,.5); }
+@keyframes torn-flicker { 0%,100%{opacity:1}50%{opacity:.6} }
+
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--subtext); }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── RECOMMENDATIONS ─────────────────────────────── */
+.rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 12px; }
+.rec-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px 20px;
+  transition: border-color .2s, transform .15s;
+}
+.rec-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.rec-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+.rec-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.rec-desc { font-size: 12.5px; color: var(--subtext); line-height: 1.6; }
+
+/* ── TLP SECTION ─────────────────────────────────── */
+.tlp-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:600px){ .tlp-cards { grid-template-columns: 1fr; } }
+.tlp-card { border-radius: 8px; padding: 20px; border: 1px solid; }
+.tlp-card-red   { border-color: rgba(255,68,68,.3); background: rgba(255,68,68,.04); }
+.tlp-card-amber { border-color: rgba(240,165,0,.4); background: rgba(240,165,0,.06); }
+.tlp-card-label { font-family: var(--font-mono); font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.tlp-card-red   .tlp-card-label { color: var(--red); }
+.tlp-card-amber .tlp-card-label { color: var(--amber); }
+.tlp-card p { font-size: 13px; color: var(--subtext); }
+.tlp-active-badge {
+  display: inline-block; margin-top: 10px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em;
+  color: var(--amber); border: 1px solid rgba(240,165,0,.4);
+  padding: 2px 8px; border-radius: 3px; background: rgba(240,165,0,.08);
+}
+
+/* ── MASK TABLE highlight ────────────────────────── */
+.mask-winner td { color: var(--green) !important; font-weight: 600; }
+.mask-winner { background: rgba(57,211,83,.06) !important; }
+
+/* ── SIGNATURE ───────────────────────────────────── */
+.sig-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  margin-top: 32px;
+}
+@media(max-width:540px){ .sig-grid { grid-template-columns: 1fr; } }
+.sig-cell { background: var(--panel); padding: 16px 18px; }
+.sig-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: .12em; color: var(--subtext); margin-bottom: 6px; }
+.sig-name  { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: #fff; }
+.sig-role  { font-family: var(--font-mono); font-size: 10px; color: var(--subtext); margin-top: 3px; }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border); padding: 20px 24px;
+  font-family: var(--font-mono); font-size: 10px; color: var(--subtext);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: gap;
+}
+
+/* ── FADE-IN ANIMATION ───────────────────────────── */
+.fade-in { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+
+/* ── SCROLLBAR ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-dot"></div>
+      <span class="topbar-ref">FOR-2026-BDO-QR-001</span>
+      <span>·</span>
+      <span>Análisis Forense Digital</span>
+    </div>
+    <span class="tlp-pill tlp-amber">TLP:AMBER</span>
+  </div>
+
+  <div class="wrap">
+
+    <!-- HERO -->
+    <div class="hero fade-in">
+      <div class="hero-badge">Informe Forense Digital</div>
+      <h1 class="hero-title">Recuperación de<br/><span>Código QR</span> Dañado</h1>
+      <p class="hero-sub">CTF BDO Panamá · 3 días · 1er Lugar · Bryan Reyes Campos</p>
+      <div class="hero-meta">
+        <div class="meta-cell">
+          <div class="meta-label">Referencia</div>
+          <div class="meta-value">FOR-2026-BDO-QR-001</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-label">Fecha</div>
+          <div class="meta-value">2026-05-14</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-label">Analista</div>
+          <div class="meta-value">Bryan Reyes Campos</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-label">Marco</div>
+          <div class="meta-value">NIST SP 800-61 Rev.2</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-label">Estándar QR</div>
+          <div class="meta-value">ISO/IEC 18004:2015</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-label">Clasificación</div>
+          <div class="meta-value" style="color:var(--amber)">TLP:AMBER</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: RESUMEN EJECUTIVO -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <div class="section-title">Resumen Ejecutivo</div>
+      </div>
+
+      <p>Durante el desarrollo del CTF organizado por <strong>BDO</strong> (duración: 3 días), se presentó como evidencia una fotografía de una hoja impresa conteniendo un código QR parcialmente dañado — simulando el hallazgo de un documento físico sustraído de una oficina. La esquina superior derecha del código QR estaba físicamente ausente (papel rasgado), eliminando el tercer <em>Position Detection Pattern</em> y parte de los módulos de datos adyacentes.</p>
+
+      <p>Mediante análisis forense digital y reconstrucción manual de los módulos dañados, se logró recuperar íntegramente el payload del QR:</p>
+
+      <div class="flag-box">
+        <div class="flag-label">// PAYLOAD RECUPERADO</div>
+        <div class="flag-value">Congrats! The flag is QR3c0v3rM4st3r</div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠</span>
+        <strong>Riesgo potencial:</strong> En un escenario real, un QR filtrado puede contener URLs de acceso administrativo, tokens de sesión MFA, credenciales Wi-Fi corporativa o claves de API. El daño físico parcial <strong>NO</strong> garantiza la confidencialidad.
+      </div>
+
+      <div class="subsection-title">Matriz de Riesgo</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Vector</th><th>Probabilidad</th><th>Impacto</th><th>Riesgo</th></tr></thead>
+          <tbody>
+            <tr><td>URL de acceso administrativo</td><td><span class="badge badge-amber">Media</span></td><td><span class="badge badge-red">Alto</span></td><td><span class="badge badge-red">ALTO</span></td></tr>
+            <tr><td>Token MFA / WhatsApp Web</td><td><span class="badge badge-amber">Media</span></td><td><span class="badge badge-red">Alto</span></td><td><span class="badge badge-red">ALTO</span></td></tr>
+            <tr><td>Credenciales Wi-Fi corporativa</td><td><span class="badge badge-green">Baja</span></td><td><span class="badge badge-amber">Medio</span></td><td><span class="badge badge-amber">MEDIO</span></td></tr>
+            <tr><td>Clave de API / Secret</td><td><span class="badge badge-green">Baja</span></td><td><span class="badge badge-red">Crítico</span></td><td><span class="badge badge-red">ALTO</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CADENA DE CUSTODIA -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <div class="section-title">Cadena de Custodia e Integridad</div>
+      </div>
+
+      <p>Conforme al estándar <strong>NIST SP 800-61 Rev.2</strong> (§3.2 — Evidence Handling), se registraron los hashes criptográficos de la evidencia original antes de cualquier procesamiento.</p>
+
+      <div class="hash-box">
+        <div class="hash-algo">SHA-256 · qr-code_deAfcpm.png</div>
+        <div class="hash-val">16720e3b437df616b01e366301a9fee17f8facc7da9668a1ad036e85aa674544</div>
+      </div>
+      <div class="hash-box">
+        <div class="hash-algo">MD5 · qr-code_deAfcpm.png</div>
+        <div class="hash-val">158a2fbf7898a6bbf0d81dd282e6f4ef</div>
+      </div>
+
+      <div class="subsection-title">Registro de Evidencia</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Ítem</th><th>Detalle</th></tr></thead>
+          <tbody>
+            <tr><td>Nombre de archivo</td><td class="mono">qr-code_deAfcpm.png</td></tr>
+            <tr><td>Tamaño</td><td class="mono">27,799 bytes</td></tr>
+            <tr><td>Dimensiones</td><td class="mono">579 × 573 px · RGBA</td></tr>
+            <tr><td>Herramientas</td><td class="mono">Python 3.12 · Pillow · NumPy · OpenCV · pyzbar</td></tr>
+            <tr><td>Script personalizado</td><td class="mono">qr_forensic_decoder.py</td></tr>
+            <tr><td>Estándar</td><td class="mono">ISO/IEC 18004:2015</td></tr>
+            <tr><td>Reproducibilidad</td><td><span class="badge badge-green">✓ 100%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 3: METODOLOGÍA -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <div class="section-title">Metodología</div>
+      </div>
+
+      <p>El proceso siguió las fases de respuesta a incidentes definidas en <strong>NIST SP 800-61 Rev.2</strong>: Preparación → Detección → Contención → Erradicación → Recuperación → Lecciones aprendidas.</p>
+
+      <div class="phase-list">
+        <div class="phase-card">
+          <div class="phase-num">01</div>
+          <div class="phase-body">
+            <div class="phase-title">Adquisición y Preservación</div>
+            <div class="phase-desc">Se calcularon SHA-256 y MD5 de la imagen original antes de cualquier procesamiento. Se trabajó exclusivamente sobre copias de trabajo.</div>
+          </div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">02</div>
+          <div class="phase-body">
+            <div class="phase-title">Identificación del Daño</div>
+            <div class="phase-desc">El tercer Position Detection Pattern estaba completamente ausente. Se detectó una franja diagonal de datos dañada en rows 0–10, cols 8–21, con densidad de módulos de apenas 7–29% (esperado: ~50%).</div>
+          </div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">03</div>
+          <div class="phase-body">
+            <div class="phase-title">Fingerprinting del QR</div>
+            <div class="phase-desc">Versión 3 (29×29 módulos, mod_size ≈ 15.7 px). Se midió el finder pattern superviviente para calibrar con precisión subpíxel. Se identificó el alignment pattern en (22, 22).</div>
+          </div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">04</div>
+          <div class="phase-body">
+            <div class="phase-title">Reconstrucción Estructural</div>
+            <div class="phase-desc">Se redibujaron manualmente: (a) el finder pattern faltante 7×7, (b) los separadores blancos adyacentes, (c) el timing pattern en fila/col 6.</div>
+          </div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">05</div>
+          <div class="phase-body">
+            <div class="phase-title">Brute-force de Format Information</div>
+            <div class="phase-desc">Con ambas copias del Format Info destruidas, se iteraron las 32 combinaciones posibles (4 niveles EC × 8 máscaras). Máscara 4 + EC Level L produjo el único resultado coherente.</div>
+          </div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">06</div>
+          <div class="phase-body">
+            <div class="phase-title">Extracción del Payload</div>
+            <div class="phase-desc">Decodificación final con alignment pattern excluido del data stream (error crítico corregido). Reed-Solomon permitió recuperación del 100% del payload.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: EVIDENCIA Y HALLAZGOS -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <div class="section-title">Evidencia y Hallazgos Técnicos</div>
+      </div>
+
+      <div class="subsection-title">4.1 Estructura del QR — Versión 3</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Parámetro</th><th>Valor</th><th>Observación</th></tr></thead>
+          <tbody>
+            <tr><td>Versión</td><td class="mono hl">3</td><td>29 × 29 módulos</td></tr>
+            <tr><td>Tamaño de módulo</td><td class="mono">15.71 px (H) / 15.57 px (V)</td><td>Aspecto no cuadrado</td></tr>
+            <tr><td>EC Level</td><td><span class="badge badge-green">L — Low</span></td><td>53 codewords · ~7% restauración</td></tr>
+            <tr><td>Máscara</td><td class="mono hl">Patrón 4</td><td>(row÷2 + col÷3) mod 2 = 0</td></tr>
+            <tr><td>Alignment pattern</td><td class="mono">Centro (22, 22)</td><td>5×5 módulos — excluir del data stream</td></tr>
+            <tr><td>Modo de datos</td><td class="mono">Byte [0100]</td><td>Encoding UTF-8 directo</td></tr>
+            <tr><td>Longitud payload</td><td class="mono hl">36 bytes</td><td>82% de capacidad EC=L</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection-title">4.2 Mapa de Daños</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Zona</th><th>Filas</th><th>Cols</th><th>Densidad</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Finder TR completo</td><td class="mono">0 – 6</td><td class="mono">22 – 28</td><td class="mono">Parcial</td><td><span class="badge badge-green">✓ Reconstruido</span></td></tr>
+            <tr><td>Separador TR</td><td class="mono">0 – 7</td><td class="mono">21</td><td class="mono">0%</td><td><span class="badge badge-green">✓ Reconstruido</span></td></tr>
+            <tr><td>Timing strip (H)</td><td class="mono">6</td><td class="mono">8 – 15</td><td class="mono">0%</td><td><span class="badge badge-green">✓ Reconstruido</span></td></tr>
+            <tr><td>Format Info col 28</td><td class="mono">0 – 8</td><td class="mono">28</td><td class="mono">0%</td><td><span class="badge badge-amber">⚠ Brute-force</span></td></tr>
+            <tr><td>Datos diagonales</td><td class="mono">0 – 9</td><td class="mono">8 – 20</td><td class="mono">7 – 29%</td><td><span class="badge badge-blue">✓ Reed-Solomon</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection-title">4.3 Payload Recuperado</div>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dot" style="background:#ff5f56"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#27c93f"></div>
+          <div class="code-lang">HEX · 36 bytes · mask=4</div>
+        </div>
+        <pre>43 6F 6E 67 72 61 74 73 21 20 54 68 65 20 66 6C
+61 67 20 69 73 20 51 52 33 63 30 76 33 72 4D 34
+73 74 33 72</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dot" style="background:#ff5f56"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#27c93f"></div>
+          <div class="code-lang">UTF-8 DECODED</div>
+        </div>
+        <pre>Congrats! The flag is QR3c0v3rM4st3r</pre>
+      </div>
+    </div>
+
+    <!-- SECTION 5: TLP -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <div class="section-title">Clasificación TLP</div>
+      </div>
+      <div class="tlp-cards">
+        <div class="tlp-card tlp-card-red">
+          <div class="tlp-card-label">🔴 TLP:RED</div>
+          <p>Uso exclusivo del receptor designado. Aplicar si el QR contenía clave privada, token activo, magic link o credencial de producción. El payload debe ser tratado como secreto hasta su rotación.</p>
+        </div>
+        <div class="tlp-card tlp-card-amber">
+          <div class="tlp-card-label">🟡 TLP:AMBER</div>
+          <p>Distribución limitada al equipo de seguridad. Permite coordinar remediación sin exponer contenido a terceros. Apropiado para este incidente.</p>
+          <div class="tlp-active-badge">← CLASIFICACIÓN ASIGNADA</div>
+        </div>
+      </div>
+      <div class="callout callout-note" style="margin-top:16px">
+        <span class="callout-icon">ℹ</span>
+        Clasificado como <strong style="color:var(--amber)">TLP:AMBER</strong> dado que contiene el payload recuperado y los pasos técnicos de explotación, pero no hay evidencia de uso en producción real.
+      </div>
+    </div>
+
+    <!-- SECTION 6: RECOMENDACIONES -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <div class="section-title">Recomendaciones de Remediación</div>
+      </div>
+      <div class="rec-grid">
+        <div class="rec-card">
+          <span class="rec-icon">🔄</span>
+          <div class="rec-title">Rotación inmediata de secretos</div>
+          <div class="rec-desc">Invalidar y regenerar cualquier recurso vinculado al QR. No basta con destruir el papel — el código ya fue recuperado.</div>
+        </div>
+        <div class="rec-card">
+          <span class="rec-icon">📷</span>
+          <div class="rec-title">Política de fotografía</div>
+          <div class="rec-desc">Prohibir fotos en zonas con QRs de acceso o pantallas con credenciales. Señalización visible y entrenamiento al personal.</div>
+        </div>
+        <div class="rec-card">
+          <span class="rec-icon">🚫</span>
+          <div class="rec-title">Eliminar el blur como ocultación</div>
+          <div class="rec-desc">Los filtros blur en QRs son reversibles con IA. Usar siempre un <strong>bloque sólido opaco</strong> — nunca desenfoque.</div>
+        </div>
+        <div class="rec-card">
+          <span class="rec-icon">🔐</span>
+          <div class="rec-title">Usar EC Level H en QRs críticos</div>
+          <div class="rec-desc">Nivel H (30% restauración) dificulta reconstrucción parcial al distribuir más codewords de paridad en el símbolo.</div>
+        </div>
+        <div class="rec-card">
+          <span class="rec-icon">🧾</span>
+          <div class="rec-title">Registro con expiración</div>
+          <div class="rec-desc">Inventariar QRs emitidos con fecha de expiración. Un QR estático sin TTL es un vector permanente si se filtra.</div>
+        </div>
+        <div class="rec-card">
+          <span class="rec-icon">🔍</span>
+          <div class="rec-title">Monitoreo de accesos</div>
+          <div class="rec-desc">Revisar logs desde la fecha del evento para detectar uso no autorizado del recurso apuntado por el QR.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 7: DETALLE TÉCNICO -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <div class="section-title">Detalle Técnico — ISO/IEC 18004</div>
+      </div>
+
+      <div class="subsection-title">7.1 Niveles de Corrección de Errores</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Nivel</th><th>Código</th><th>Restauración</th><th>Codewords v3</th><th>Uso típico</th></tr></thead>
+          <tbody>
+            <tr style="background:rgba(57,211,83,.06)"><td><strong style="color:var(--green)">Low ← este QR</strong></td><td class="mono" style="color:var(--green)">L</td><td class="mono" style="color:var(--green)">~7%</td><td class="mono">53</td><td>URLs públicas</td></tr>
+            <tr><td>Medium</td><td class="mono">M</td><td class="mono">~15%</td><td class="mono">34</td><td>Uso general</td></tr>
+            <tr><td>Quartile</td><td class="mono">Q</td><td class="mono">~25%</td><td class="mono">24</td><td>Industrial</td></tr>
+            <tr><td>High</td><td class="mono">H</td><td class="mono">~30%</td><td class="mono">17</td><td>Tokens críticos</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection-title">7.2 Brute-force de Format Information</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Máscara</th><th>Modo detectado</th><th>Count</th><th>Match "Congrats!"</th><th>Veredicto</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">0</td><td class="mono">0xE (inválido)</td><td>—</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+            <tr><td class="mono">1</td><td class="mono">0xB (inválido)</td><td>—</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+            <tr><td class="mono">2</td><td class="mono">Alphanumeric</td><td>357</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+            <tr><td class="mono">3</td><td class="mono">0x6 (inválido)</td><td>—</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+            <tr class="mask-winner"><td class="mono">4</td><td class="mono">Byte</td><td>36</td><td><span class="badge badge-green">✓ Sí</span></td><td><span class="badge badge-green">✓ SELECCIONADO</span></td></tr>
+            <tr><td class="mono">5</td><td class="mono">Numeric</td><td>687</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+            <tr><td class="mono">6</td><td class="mono">Numeric</td><td>167</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+            <tr><td class="mono">7</td><td class="mono">0x6 (inválido)</td><td>—</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-dim">Descartado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection-title">7.3 Bug Crítico — Alignment Pattern</div>
+      <p>El <strong>alignment pattern</strong> (5×5 módulos en posición [22,22]) no estaba siendo excluido del data stream, corrompiendo 25 módulos de datos y produciendo basura en los bytes 10–35.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dot" style="background:#ff5f56"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#27c93f"></div>
+          <div class="code-lang">Python · ISO/IEC 18004:2015 §6.3.6</div>
+        </div>
+        <pre><span class="c"># ❌ Sin excluir alignment — bytes 10-35 = garbage</span>
+<span class="bad">data_stream.append(grid[row][col])  # incluye alignment</span>
+
+<span class="c"># ✅ Correcto: excluir función modules del data stream</span>
+<span class="k">if</span> 20 <= row <= 24 <span class="k">and</span> 20 <= col <= 24:
+    <span class="k">return</span> <span class="good">True  # alignment pattern → función, NO dato</span></pre>
+      </div>
+    </div>
+
+    <!-- SECTION 8: CONCLUSIONES -->
+    <div class="section fade-in">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <div class="section-title">Conclusiones</div>
+      </div>
+
+      <p>El análisis forense demostró que es posible recuperar íntegramente el contenido de un código QR parcialmente destruido, incluso cuando se pierden elementos estructurales críticos como el Position Detection Pattern. La combinación de reconstrucción manual, brute-force de Format Information y corrección Reed-Solomon permitió extraer el payload completo.</p>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠</span>
+        Destruir <strong>parcialmente</strong> un documento que contiene un QR de acceso <strong>NO es suficiente</strong>. Se requiere destrucción completa e irreversible del documento más rotación inmediata del secreto asociado.
+      </div>
+
+      <div class="sig-grid">
+        <div class="sig-cell">
+          <div class="sig-label">Preparado por</div>
+          <div class="sig-name">Bryan Reyes Campos</div>
+          <div class="sig-role">Analista de Ciberseguridad</div>
+        </div>
+        <div class="sig-cell">
+          <div class="sig-label">Revisado por</div>
+          <div class="sig-name">Equipo SOC — BDO CTF</div>
+          <div class="sig-role">Panel de Jueces BDO 2026</div>
+        </div>
+        <div class="sig-cell">
+          <div class="sig-label">Clasificación</div>
+          <div class="sig-name" style="color:var(--amber)">TLP:AMBER</div>
+          <div class="sig-role">2026-05-14 · v1.0 Final</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <div class="footer">
+    <span>CONFIDENCIAL — TLP:AMBER | Análisis Forense Digital — QR Code Recovery</span>
+    <span>FOR-2026-BDO-QR-001</span>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+  mounted() {
+    // Intersection Observer for fade-in animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 60);
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
