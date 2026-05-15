@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 const Header = () => {
@@ -31,6 +32,7 @@ const Header = () => {
           <button onClick={() => scrollToSection('metodologia')} style={styles.navLink}>Metodología</button>
           <button onClick={() => scrollToSection('cotizacion')} style={styles.navLink}>Cotización</button>
           <button onClick={() => scrollToSection('contacto')} style={styles.navLink}>Contacto</button>
+          <Link to="/reportes" style={styles.navLink}>Reportes</Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -51,6 +53,7 @@ const Header = () => {
           <button onClick={() => scrollToSection('metodologia')} style={styles.mobileNavLink}>Metodología</button>
           <button onClick={() => scrollToSection('cotizacion')} style={styles.mobileNavLink}>Cotización</button>
           <button onClick={() => scrollToSection('contacto')} style={styles.mobileNavLink}>Contacto</button>
+          <Link to="/reportes" style={{...styles.mobileNavLink, textDecoration: 'none'}} onClick={() => setMenuOpen(false)}>Reportes</Link>
         </div>
       )}
     </header>
