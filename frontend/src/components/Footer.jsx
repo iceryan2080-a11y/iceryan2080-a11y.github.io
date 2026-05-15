@@ -134,6 +134,9 @@ const Footer = () => {
             <p style={styles.copyrightSubtext}>
               Protegiendo infraestructuras digitales con excelencia
             </p>
+            <p style={styles.copyrightSubtext}>
+              Creado por CEO de Nefila Defense Bryan Reyes
+            </p>
           </div>
         </div>
       </div>
