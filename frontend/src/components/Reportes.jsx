@@ -2,6 +2,13 @@ import React from 'react';
 
 const REPORTS = [
   {
+    id: "INC-2025-HTB-SILENTIUM",
+    titulo: "Informe Ejecutivo de Seguridad — Silentium",
+    fecha: "2025-05-19",
+    resumen: "Compromiso completo de servidor Linux vía CVE-2025-8110 (Gogs RCE). Escalada a root mediante abuso de symlinks e inyección de sshCommand malicioso.",
+    archivo: "Silentium_NIST_Report.html",
+  },
+  {
     id: "FOR-2026-BDO-QR-001",
     titulo: "Recuperación de Código QR Dañado",
     fecha: "2026-05-14",
